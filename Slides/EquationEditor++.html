@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 <link rel="stylesheet" href="https://ssl.gstatic.com/docs/script/css/add-ons1.css">
 <script type="text/javascript" src="https://latex.codecogs.com/js/eq_config.js" ></script>
@@ -32,12 +33,7 @@ toggle-section[role="region"] + toggle-section {
 </style>
 	
 <div style="margin-left: 6px; margin-right: 6px;"><!-- For side margins -->
-	<h2 class="margin">Getting Started</h2>
-	<p class="margin" id="gettingStarted">To start, type a formula into the textbox labeled Math GUI Editor. Alternatively, type LaTeX code into the LaTeX code box. 
-		When you are done click the Insert Equation into Document button. If you have already made an equation with this tool, you can load its LaTeX code by 
-		selecting it and clicking the Import saved Equation button.</p>
-	<label for="GSVisible" class="margin">Getting Started Prompt is Visible</label>
-	<input type="checkbox" id="GSVisible" onclick="GSVisible();" checked><br>
+	<a href="https://www.equationeditorpp.abezukor.com/getting-started" target="_blank"><p class="margin">Getting Started</p></a>
 	
 	<button onclick="getSaved();" class="action margin">Import Saved Equation</button><br><br>
 	
@@ -61,7 +57,7 @@ toggle-section[role="region"] + toggle-section {
 	<input type="checkbox" id="lockPreviewWidth" onclick="lockPreviewWidth()" checked><br>
 	
 	<div id="replaceBtn" hidden><button class="create margin" onclick="passURL(true);">Replace Selected Equation</button><br></div>
-	<button class="create margin" id="insertBtn" onclick="passURL(false);">Insert Equation into Document</button>
+	<button class="create margin" id="insertBtn" onclick="passURL(false);">Insert Equation into Slide</button>
 	
 	
 	<h2>Tips and Credits</h2>
@@ -90,7 +86,6 @@ toggle-section[role="region"] + toggle-section {
 			}
 		}
 	});
-	//<label for="dpi">DPI</label>
 //ReRender on settings change
 	function reRender(){
 	/*
@@ -149,11 +144,20 @@ toggle-section[role="region"] + toggle-section {
  			await new Promise(r => setTimeout(r, 500));
 		}
 		document.getElementById(id).before(fontsizeLabel);
+        console.log($('#fontsize'));
+        $('#fontsize').val("\\huge");$('#dpi').val("300");
 	}
 	makeAsyncLabel("fontsize", "Font Size : ");
 	makeAsyncLabel("dpi", "DPI : ");
-//Toggle Getting Started
-	function GSVisible(){
-		$("#gettingStarted").toggle();
-	}
+</script>
+
+
+<!-- Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-151667238-2');
 </script>

@@ -1,7 +1,0 @@
-**/**
-!appsscript.json
-!*.js
-!*.ts
-!*.html
-.git
-.gitignore

@@ -8,7 +8,7 @@ function onInstall(){
   onOpen();
 }
 function showSidebar(){
-  var html =HtmlService.createTemplateFromFile("EquationEditor++.html").evaluate().setTitle("Equation Editor ++");
+  var html = EQPPCommon.gethtmlSideBar();
   SlidesApp.getUi().showSidebar(html);
 }
 
@@ -25,21 +25,23 @@ function findImage(){
   return("CantFindImage");
 }
 
-function insertEquation(URL,teX,replace){
+function insertEquation(img_data,equation_metadata,replace){
   var pos;
+  let new_image = EQPPCommon.getImage(img_data);
+  EQPPCommon.setEquationMetadata(equation_metadata);
   if (replace){
     var oldimg = findImage();
-    oldimg.replace(URL);
-    oldimg.setDescription(teX);
-    
+    EQPPCommon.deleteEquationMetadata(oldimg.getAltDescription());
+    oldimg.replace(new_image);
+    oldimg.setDescription(EQPPCommon.getEquationAltDescription(equation_metadata));
   }
   else{
     pos = SlidesApp.getActivePresentation().getSelection().getCurrentPage();
-      var image = UrlFetchApp.fetch(URL)
-      pos.insertImage(image).setDescription(teX);
+    pos.insertImage(new_image).setDescription(EQPPCommon.getEquationAltDescription(equation_metadata));
   }
 }
 
 function getImageTex(){
-  return findImage().getDescription();
+  let md = EQPPCommon.getEquationMetadata(findImage().getDescription());
+  return md;
 }

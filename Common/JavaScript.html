@@ -1,0 +1,157 @@
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<script type="text/javascript">
+  var a;
+  var preview = document.getElementById("preview");
+  let inlineCB = document.getElementById("inlinecheckbox");
+  let fontsize_in = document.getElementById("fontsize");
+  let backPropogationError = document.getElementById("backPropogationError");
+
+  //Set up Syntax Highlight area
+  ace.config.set("basePath", "https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/");
+  var aceeditor = ace.edit("texArea");
+  aceeditor.getSession().setUseWorker(false);
+  aceeditor.setTheme("ace/theme/dawn");
+  aceeditor.getSession().setMode("ace/mode/latex");
+  aceeditor.session.setUseWrapMode(true);
+  aceeditor.renderer.setShowGutter(false);
+  aceeditor.resize()
+  aceeditor.session.on('change', function (delta) {
+    renderTex();
+
+  });
+
+  var mathFieldSpan = document.getElementById('math-field');
+  var MQ = MathQuill.getInterface(2); // for backcompat
+  var mathField = MQ.MathField(mathFieldSpan, {
+    spaceBehavesLikeTab: true, // configurable
+    handlers: {
+      edit: function () { // useful event handlers
+        setTex(mathField.latex());
+      }
+    }
+  });
+  function renderTex() {
+    let eq = get_equation();
+
+    MathJax.texReset();
+    let options = MathJax.getMetricsFor(preview);
+    MathJax.tex2svgPromise(eq, options).then(function (node) {
+      preview.textContent = '';
+      preview.appendChild(node);
+      MathJax.startup.document.clear();
+      MathJax.startup.document.updateDocument();
+    }).catch(function (err) {
+      preview.textContent = '';
+      preview.appendChild(document.createElement('pre')).appendChild(document.createTextNode(err.message));
+    }).then(function () {
+    });
+  }
+
+  function get_equation() {
+    return `${inlineCB.checked ? "\\textstyle" : "\\displaystyle"}\n${get_raw_equation()}\n%${new_uuid()}`
+  }
+  function get_raw_equation() {
+    return aceeditor.getValue()
+  }
+
+  function backPropagate() {
+    var texCode = get_raw_equation();
+
+    mathField.select();
+    mathField.keystroke("Del");
+    mathField.write(texCode);
+
+    if (!mathField.latex()) {
+      setTex(texCode);
+      backPropogationError.hidden = false;
+    } else {
+      backPropogationError.hidden = true;
+    }
+  }
+
+  function getSaved() {
+    function onSuccess(equation_metadata) {
+      //console.log(equation_metadata);
+      setTex(equation_metadata["tex"]);
+      set_format(equation_metadata["format"]);
+      backPropagate();
+
+      format_change();
+      renderTex();
+
+      document.getElementById("replaceBtn").hidden = false;
+    }
+    var tex = google.script.run.withSuccessHandler(onSuccess).getImageTex();
+  }
+
+  function setTex(tex) {
+    aceeditor.session.setValue(tex);
+  }
+
+  let canvas = document.createElement("canvas");
+  function equationToDocument(fromSaved) {
+    let svg = preview.querySelectorAll('svg')[0];
+    let w = Math.ceil(svg.width.baseVal.value);
+    let h = Math.ceil(svg.height.baseVal.value);
+
+    var ctx = canvas.getContext('2d');
+    //console.log(ctx.canvas.width, ctx.canvas.height);
+
+    var data = (new XMLSerializer()).serializeToString(svg);
+    var DOMURL = window.URL || window.webkitURL || window;
+
+    var img = new Image();
+    var svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+    var url = DOMURL.createObjectURL(svgBlob);
+
+
+    img.onload = function () {
+      ctx.canvas.width = w;
+      ctx.canvas.height = h;
+      //console.log(ctx.canvas.width, ctx.canvas.height);
+
+      ctx.drawImage(img, 0, 0, w, h);
+      DOMURL.revokeObjectURL(url);
+
+      var imgURI = canvas
+        .toDataURL('image/png');
+      //console.log(imgURI);
+      google.script.run.insertEquation(imgURI,
+        {
+          tex: get_raw_equation(),
+          format: get_format(),
+          uuid: get_uuid()
+        },
+        fromSaved);
+    };
+
+    img.src = url;
+  }
+
+  function format_change() {
+    let fontsize = fontsize_in.value;
+    preview.style.fontSize = fontsize + "px";
+    renderTex();
+  }
+  function get_format() {
+    return {
+      fontsize: fontsize_in.value,
+      inline: inlineCB.checked
+    }
+  }
+  function set_format(fmt) {
+    if (fmt) {
+      fontsize_in.value = fmt["fontsize"];
+      inlineCB.checked = fmt["inline"];
+    }
+  }
+
+  var current_uuid = self.crypto.randomUUID();
+  function get_uuid() {
+    return current_uuid;
+  }
+  function new_uuid() {
+    current_uuid = self.crypto.randomUUID();
+    return current_uuid;
+  }
+</script>
